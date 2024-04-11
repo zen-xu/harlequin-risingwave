@@ -30,24 +30,24 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
             schema_items: list[CatalogItem] = []
             for (schema,) in schemas:
                 table_catalog = CatalogItem(
-                    qualified_identifier=f'"{db}"."{schema}"."table"',
-                    query_name=f'"{db}"."{schema}"."table"',
+                    qualified_identifier=f"{db}.{schema}.table",
+                    query_name=f"{db}.{schema}.table",
                     label="table",
                     type_label="t",
                     children=self._get_table(db, schema, "BASE TABLE", "table", "t"),
                 )
 
                 view_catalog = CatalogItem(
-                    qualified_identifier=f'"{db}"."{schema}"."view"',
-                    query_name=f'"{db}"."{schema}"."view"',
+                    qualified_identifier=f"{db}.{schema}.view",
+                    query_name=f"{db}.{schema}.view",
                     label="view",
                     type_label="v",
                     children=self._get_table(db, schema, "VIEW", "view", "v"),
                 )
 
                 materialized_view_catalog = CatalogItem(
-                    qualified_identifier=f'"{db}"."{schema}"."materialized_view"',
-                    query_name=f'"{db}"."{schema}"."materialized_view"',
+                    qualified_identifier=f"{db}.{schema}.materialized_view",
+                    query_name=f"{db}.{schema}.materialized_view",
                     label="materialized_view",
                     type_label="mv",
                     children=self._get_table(
@@ -56,16 +56,16 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
                 )
 
                 source_catalog = CatalogItem(
-                    qualified_identifier=f'"{db}"."{schema}"."source"',
-                    query_name=f'"{db}"."{schema}"."source"',
+                    qualified_identifier=f"{db}.{schema}.source",
+                    query_name=f"{db}.{schema}.source",
                     label="source",
                     type_label="source",
                     children=self._get_table(db, schema, "SOURCE", "source", "source"),
                 )
 
                 sink_catalog = CatalogItem(
-                    qualified_identifier=f'"{db}"."{schema}"."sink"',
-                    query_name=f'"{db}"."{schema}"."sink"',
+                    qualified_identifier=f"{db}.{schema}.sink",
+                    query_name=f"{db}.{schema}.sink",
                     label="sink",
                     type_label="sink",
                     children=self._get_table(db, schema, "SINK", "sink", "sink"),
@@ -73,8 +73,8 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
 
                 schema_items.append(
                     CatalogItem(
-                        qualified_identifier=f'"{db}"."{schema}"',
-                        query_name=f'"{db}"."{schema}"',
+                        qualified_identifier=f"{db}.{schema}",
+                        query_name=f"{db}.{schema}",
                         label=schema,
                         type_label="s",
                         children=[
@@ -88,8 +88,8 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
                 )
             db_items.append(
                 CatalogItem(
-                    qualified_identifier=f'"{db}"',
-                    query_name=f'"{db}"',
+                    qualified_identifier=db,
+                    query_name=db,
                     label=db,
                     type_label="db",
                     children=schema_items,
@@ -140,14 +140,14 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
             table_names: list[str] = [row[0] for row in cur.fetchall()]
             tables = [
                 CatalogItem(
-                    qualified_identifier=f'"{dbname}"."{schema}"."{table_identifier}"."{table_name}"',
-                    query_name=f'"{table_name}"',
+                    qualified_identifier=f"{dbname}.{schema}.{table_name}",
+                    query_name=f"{dbname}.{schema}.{table_name}",
                     label=table_name,
                     type_label=type_label,
                     children=[
                         CatalogItem(
-                            qualified_identifier=f'"{dbname}"."{schema}"."{table_identifier}"."{table_name}"."{col}"',
-                            query_name=f'"{col}"',
+                            qualified_identifier=f"{dbname}.{schema}.{table_name}.{col}",
+                            query_name=col,
                             label=col,
                             type_label=self._get_short_type(col_type),
                         )
