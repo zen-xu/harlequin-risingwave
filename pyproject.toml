@@ -12,6 +12,9 @@ harlequin = "^1.7"
 psycopg2-binary = "^2.9.9"
 harlequin-postgres = "0.2.2"
 
+[tool.poetry.plugins."harlequin.adapter"]
+risingwave = "harlequin_risingwave:HarlequinRisingwaveAdapter"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
