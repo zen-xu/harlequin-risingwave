@@ -2,6 +2,8 @@
 
 This repo provides the Harlequin adapter for [Risingwave](https://github.com/risingwavelabs/risingwave).
 
+![](https://github.com/zen-xu/harlequin-risingwave/blob/main/assets/demo.jpg?raw=true)
+
 ## Installation
 
 `harlequin-risingwave` depends on `harlequin` and `risingwave-postgres`, so installing this package will also install these packages.
