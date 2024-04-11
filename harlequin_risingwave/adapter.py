@@ -29,48 +29,6 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
             schemas = self._get_schemas(db)
             schema_items: list[CatalogItem] = []
             for (schema,) in schemas:
-                table_catalog = CatalogItem(
-                    qualified_identifier=f"{db}.{schema}.table",
-                    query_name=f"{db}.{schema}.table",
-                    label="table",
-                    type_label="t",
-                    children=self._get_table(db, schema, "BASE TABLE", "table", "t"),
-                )
-
-                view_catalog = CatalogItem(
-                    qualified_identifier=f"{db}.{schema}.view",
-                    query_name=f"{db}.{schema}.view",
-                    label="view",
-                    type_label="v",
-                    children=self._get_table(db, schema, "VIEW", "view", "v"),
-                )
-
-                materialized_view_catalog = CatalogItem(
-                    qualified_identifier=f"{db}.{schema}.materialized_view",
-                    query_name=f"{db}.{schema}.materialized_view",
-                    label="materialized_view",
-                    type_label="mv",
-                    children=self._get_table(
-                        db, schema, "MATERIALIZED VIEW", "materialized_view", "mv"
-                    ),
-                )
-
-                source_catalog = CatalogItem(
-                    qualified_identifier=f"{db}.{schema}.source",
-                    query_name=f"{db}.{schema}.source",
-                    label="source",
-                    type_label="source",
-                    children=self._get_table(db, schema, "SOURCE", "source", "source"),
-                )
-
-                sink_catalog = CatalogItem(
-                    qualified_identifier=f"{db}.{schema}.sink",
-                    query_name=f"{db}.{schema}.sink",
-                    label="sink",
-                    type_label="sink",
-                    children=self._get_table(db, schema, "SINK", "sink", "sink"),
-                )
-
                 schema_items.append(
                     CatalogItem(
                         qualified_identifier=f"{db}.{schema}",
@@ -78,11 +36,17 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
                         label=schema,
                         type_label="s",
                         children=[
-                            table_catalog,
-                            view_catalog,
-                            materialized_view_catalog,
-                            source_catalog,
-                            sink_catalog,
+                            *self._get_table(db, schema, "BASE TABLE", "table", "t"),
+                            *self._get_table(db, schema, "VIEW", "view", "v"),
+                            *self._get_table(
+                                db,
+                                schema,
+                                "MATERIALIZED VIEW",
+                                "materialized_view",
+                                "mv",
+                            ),
+                            *self._get_table(db, schema, "SOURCE", "source", "source"),
+                            *self._get_table(db, schema, "SINK", "sink", "sink"),
                         ],
                     )
                 )
