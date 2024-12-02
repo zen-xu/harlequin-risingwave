@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.9"
 harlequin = "^1.7"
 psycopg2-binary = "^2.9.9"
-harlequin-postgres = "0.2.2"
+harlequin-postgres = "^0.4"
 
 [tool.poetry.plugins."harlequin.adapter"]
 risingwave = "harlequin_risingwave:HarlequinRisingwaveAdapter"
