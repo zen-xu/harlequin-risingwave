@@ -6,7 +6,7 @@ This repo provides the Harlequin adapter for [Risingwave](https://github.com/ris
 
 ## Installation
 
-`harlequin-risingwave` depends on `harlequin` and `risingwave-postgres`, so installing this package will also install these packages.
+`harlequin-risingwave` depends on `harlequin` and `harlequin-postgres`, so installing this package will also install these packages.
 
 ### Using pip
 
