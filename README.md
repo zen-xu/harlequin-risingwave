@@ -15,10 +15,16 @@ To install this adapter into an activated virtual environment:
 pip install harlequin-risingwave
 ```
 
-### Using poetry
+### Using uv
 
 ```bash
-poetry add harlequin-risingwave
+uv add harlequin-risingwave
+```
+
+Or run directly without installing:
+
+```bash
+uvx --with harlequin-risingwave harlequin -a risingwave
 ```
 
 ### Using pipx
