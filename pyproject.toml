@@ -1,6 +1,6 @@
 [project]
 name = "harlequin-risingwave"
-version = "0.5.0"
+dynamic = ["version"]
 description = "A Harlequin adapter for Risingwave."
 authors = [{ name = "ZhengYu, Xu", email = "zen-xu@outlook.com" }]
 license = { text = "MIT" }
@@ -17,8 +17,11 @@ dependencies = [
 risingwave = "harlequin_risingwave:HarlequinRisingwaveAdapter"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.ruff]
 select = ["A", "B", "E", "F", "I"]
