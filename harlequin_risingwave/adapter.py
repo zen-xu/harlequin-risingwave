@@ -8,8 +8,10 @@ from harlequin.exception import HarlequinConnectionError
 from harlequin.options import TextOption
 from harlequin_postgres import HarlequinPostgresAdapter, cli_options
 from harlequin_postgres.adapter import HarlequinPostgresConnection
-from psycopg2.extensions import connection
+from harlequin_postgres.loaders import register_inf_loaders
+from psycopg import Connection
 
+from .catalog import RisingwaveDatabaseCatalogItem
 from .completion import get_completions
 
 RISINGWAVE_OPTIONS = [
@@ -35,7 +37,7 @@ class HarlequinRisingwaveAdapter(HarlequinPostgresAdapter):  # type: ignore[misc
         passfile: str | None = None,
         require_auth: str | None = None,
         channel_binding: str | None = None,
-        connect_timeout: int | None = None,
+        connect_timeout: int | float | None = None,
         sslmode: str | None = None,
         sslcert: str | None = None,
         sslkey: str | None = None,
@@ -44,18 +46,18 @@ class HarlequinRisingwaveAdapter(HarlequinPostgresAdapter):  # type: ignore[misc
     ) -> None:
         super().__init__(
             conn_str,
-            host,
-            port,
-            dbname,
-            user,
-            password,
-            passfile,
-            require_auth,
-            channel_binding,
-            connect_timeout,
-            sslmode,
-            sslcert,
-            sslkey,
+            host=host,
+            port=port,
+            dbname=dbname,
+            user=user,
+            password=password,
+            passfile=passfile,
+            require_auth=require_auth,
+            channel_binding=channel_binding,
+            connect_timeout=connect_timeout,
+            sslmode=sslmode,
+            sslcert=sslcert,
+            sslkey=sslkey,
             **_,
         )
         self.timezone = timezone
@@ -66,6 +68,7 @@ class HarlequinRisingwaveAdapter(HarlequinPostgresAdapter):  # type: ignore[misc
                 "Cannot provide multiple connection strings to the Risingwave adapter. "
                 f"{self.conn_str}"
             )
+        register_inf_loaders()
         conn = HarlequinRisingwaveConnection(
             self.conn_str, options=self.options, timezone=self.timezone
         )
@@ -91,110 +94,14 @@ class HarlequinRisingwaveConnection(HarlequinPostgresConnection):  # type: ignor
 
     def get_catalog(self) -> Catalog:
         databases = self._get_databases()
-        db_items: list[CatalogItem] = []
-        for (db,) in databases:
-            schemas = self._get_schemas(db)
-            schema_items: list[CatalogItem] = []
-            for (schema,) in schemas:
-                schema_items.append(
-                    CatalogItem(
-                        qualified_identifier=f"{db}.{schema}",
-                        query_name=f"{db}.{schema}",
-                        label=schema,
-                        type_label="s",
-                        children=[
-                            *self._get_table(db, schema, "BASE TABLE", "table", "t"),
-                            *self._get_table(db, schema, "VIEW", "view", "v"),
-                            *self._get_table(
-                                db,
-                                schema,
-                                "MATERIALIZED VIEW",
-                                "materialized_view",
-                                "mv",
-                            ),
-                            *self._get_table(db, schema, "SOURCE", "source", "source"),
-                            *self._get_table(db, schema, "SINK", "sink", "sink"),
-                        ],
-                    )
-                )
-            db_items.append(
-                CatalogItem(
-                    qualified_identifier=db,
-                    query_name=db,
-                    label=db,
-                    type_label="db",
-                    children=schema_items,
-                )
-            )
+        db_items: list[CatalogItem] = [
+            RisingwaveDatabaseCatalogItem.from_label(label=db, connection=self)
+            for (db,) in databases
+        ]
         return Catalog(items=db_items)
 
-    def _get_schemas(self, dbname: str) -> list[tuple[str]]:
-        conn: connection = self.pool.getconn()
-        with conn.cursor() as cur:
-            cur.execute(
-                f"""
-                select distinct table_schema
-                from information_schema.tables
-                where
-                    table_catalog = '{dbname}'
-                    and table_schema != 'information_schema'
-                    and table_schema not like 'pg_%'
-                order by table_schema asc
-                ;"""
-            )
-            results: list[tuple[str]] = cur.fetchall()
-
-        self.pool.putconn(conn)
-        return results
-
-    def _get_table(
-        self,
-        dbname: str,
-        schema: str,
-        table_type: str,
-        table_identifier: str,
-        type_label: str,
-    ) -> list[CatalogItem]:
-        conn: connection = self.pool.getconn()
-        with conn.cursor() as cur:
-            cur.execute(
-                f"""
-                select table_name
-                from information_schema.tables
-                where
-                    table_catalog = '{dbname}'
-                    and table_schema = '{schema}'
-                    and table_type = '{table_type}'
-                order by table_name asc;
-                """
-            )
-            table_names: list[str] = [row[0] for row in cur.fetchall()]
-            tables = [
-                CatalogItem(
-                    qualified_identifier=f"{dbname}.{schema}.{table_name}",
-                    query_name=f"{dbname}.{schema}.{table_name}",
-                    label=table_name,
-                    type_label=type_label,
-                    children=[
-                        CatalogItem(
-                            qualified_identifier=f"{dbname}.{schema}.{table_name}.{col}",
-                            query_name=col,
-                            label=col,
-                            type_label=self._get_short_type(col_type),
-                        )
-                        for col, col_type in self._get_columns(
-                            dbname, schema, table_name
-                        )
-                    ],
-                )
-                for table_name in table_names
-            ]
-
-        self.pool.putconn(conn)
-        return tables
-
     def get_completions(self) -> list[HarlequinCompletion]:
-        conn: connection = self.pool.getconn()
+        conn: Connection = self.pool.getconn()
         completions = get_completions(conn)
         self.pool.putconn(conn)
         return completions
